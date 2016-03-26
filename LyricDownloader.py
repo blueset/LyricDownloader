@@ -11,6 +11,14 @@ import xml.etree.ElementTree as ET
 
 class LyricDownloader:
 
+    svradd = [
+              'http://ttlrcct2.qianqian.com/dll/lyricsvr.dll',
+              'http://ttplayer.sinaapp.com/lyrics/api/',
+              'http://ttlrcct.qianqian.com/dll/lyricsvr.dll',
+              'http://ttlrccnc.qianqian.com/dll/lyricsvr.dll']
+
+    svropt = 1
+
     def __conv(self, i):
         r = i % 0x100000000
         if i >= 0 and r > 0x80000000:
@@ -20,20 +28,21 @@ class LyricDownloader:
         return r
 
     def __dec_to_hex(self, dec):
-        return str(hex(dec))[2:].upper()
+        return str(hex(int(dec)))[2:].upper()
 
     def __hex_string(self, key):
         key = key.strip().encode('utf_16_le')
         result = ''
         for i in key:
-            c = ord(i)
+            c = i
             result += self.__dec_to_hex((c - c % 16) / 16)
             result += self.__dec_to_hex(c % 16)
         return result
 
     def __retrieve_lrc(self, artist, title, lrc_id):
         code = self.qianqian_code(artist, title, lrc_id)
-        url = 'http://ttlrccnc.qianqian.com/dll/lyricsvr.dll?dl?Id=%s&Code=%s' % (lrc_id, code)
+        url = self.svradd[self.svropt] + '?dl?Id=%s&Code=%s' % (lrc_id, code)
+        print(url)
         header = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/33.0.1750.149 Safari/537.36',
             'Host': 'ttlrccnc.qianqian.com',
@@ -50,8 +59,7 @@ class LyricDownloader:
         length = len(combined)
         song = []
         for i in combined:
-            char = repr(i)[3:5]
-            song.append(int(char, 16))
+            song.append(int(i))
         int_val1 = 0
         int_val2 = 0
         int_val3 = 0
@@ -99,7 +107,7 @@ class LyricDownloader:
         return int_val5
 
     def get_lyric_list(self, artist, title):
-        url = 'http://ttlrccnc.qianqian.com/dll/lyricsvr.dll?sh?Artist=%s&Title=%s&Flags=0' % (
+        url = self.svradd[self.svropt] + '?sh?Artist=%s&Title=%s&Flags=0' % (
             self.__hex_string(artist), self.__hex_string(title))
         r = requests.get(url)
         # print r.content
@@ -130,4 +138,7 @@ if __name__ == '__main__':
     artist = u'布衣乐队'
     title = u'秋天'
     lrc = LyricDownloader()
-    print lrc.get_plain(artist, title)
+    lrc.svropt = 0
+    print (lrc.get_lrc(artist, title))
+    lrc.svropt = 1
+    print (lrc.get_lrc(artist, title))

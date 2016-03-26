@@ -1,7 +1,7 @@
 LyricDownloader
 ===============
 
-A lyric downloader implemented in Python
+A lyric downloader implemented in Python 3
 
 ##Usage
 ###Download the plain lyric
